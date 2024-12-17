@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convert JSON to XML</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        input[type="file"] {
+            margin: 10px 0;
+        }
+        button {
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Chuyển Đổi JSON Thành XML</h1>
+
+    <!-- Form tải lên tệp JSON -->
+    <input type="file" id="jsonFile" accept=".json" />
+    <button id="convertBtn">Chuyển Đổi Thành XML</button>
+
+    <!-- Kết quả hiển thị -->
+    <pre id="output"></pre>
+
+    <script>
+        // Hàm chuyển đổi JSON sang XML
+        function jsonToXml(jsonObj) {
+            let xml = '';
+            
+            for (let key in jsonObj) {
+                if (jsonObj.hasOwnProperty(key)) {
+                    let value = jsonObj[key];
+                    if (Array.isArray(value)) {
+                        value.forEach(item => {
+                            xml += `<${key}>` + jsonToXml(item) + `</${key}>`;
+                        });
+                    } else if (typeof value === 'object') {
+                        xml += `<${key}>` + jsonToXml(value) + `</${key}>`;
+                    } else {
+                        xml += `<${key}>${value}</${key}>`;
+                    }
+                }
+            }
+            
+            return xml;
+        }
+
+        // Hàm để tải xuống tệp XML
+        function downloadXml(xmlContent, filename) {
+            const blob = new Blob([xmlContent], { type: 'application/xml' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+        }
+
+        // Lắng nghe sự kiện khi người dùng tải lên tệp JSON
+        document.getElementById('convertBtn').addEventListener('click', function() {
+            const fileInput = document.getElementById('jsonFile');
+            const file = fileInput.files[0];
+
+            if (file && file.type === 'application/json') {
+                const reader = new FileReader();
+
+                reader.onload = function(event) {
+                    try {
+                        // Đọc dữ liệu từ tệp JSON
+                        const jsonData = JSON.parse(event.target.result);
+                        
+                        // Chuyển đổi thành XML
+                        const xmlData = jsonToXml(jsonData);
+                        
+                        // Hiển thị XML ra giao diện
+                        document.getElementById('output').textContent = xmlData;
+
+                        // Tạo và tải tệp XML
+                        downloadXml(xmlData, 'data.xml');
+                    } catch (error) {
+                        alert('Có lỗi xảy ra khi đọc hoặc chuyển đổi tệp JSON.');
+                    }
+                };
+
+                reader.readAsText(file);
+            } else {
+                alert('Vui lòng chọn một tệp JSON.');
+            }
+        });
+    </script>
+
+</body>
+</html>
