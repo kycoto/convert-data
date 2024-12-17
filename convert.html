@@ -28,6 +28,7 @@
             padding: 10px;
             border: 1px solid #ddd;
             font-size: 1rem;
+            white-space: pre-wrap; /* Cho phép xuống dòng trong thẻ <pre> */
         }
     </style>
 </head>
@@ -43,21 +44,27 @@
     <pre id="output"></pre>
 
     <script>
-        // Hàm chuyển đổi JSON sang XML
-        function jsonToXml(jsonObj) {
+        // Hàm chuyển đổi JSON sang XML với định dạng đẹp
+        function jsonToXml(jsonObj, indent = '') {
             let xml = '';
             
             for (let key in jsonObj) {
                 if (jsonObj.hasOwnProperty(key)) {
                     let value = jsonObj[key];
+                    let openingTag = `${indent}<${key}>`;
+                    let closingTag = `</${key}>`;
+                    
                     if (Array.isArray(value)) {
+                        // Nếu giá trị là mảng, lặp qua từng phần tử
                         value.forEach(item => {
-                            xml += `<${key}>` + jsonToXml(item) + `</${key}>`;
+                            xml += openingTag + '\n' + jsonToXml(item, indent + '  ') + `\n${indent}${closingTag}`;
                         });
                     } else if (typeof value === 'object') {
-                        xml += `<${key}>` + jsonToXml(value) + `</${key}>`;
+                        // Nếu giá trị là object, gọi đệ quy
+                        xml += openingTag + '\n' + jsonToXml(value, indent + '  ') + `\n${indent}${closingTag}`;
                     } else {
-                        xml += `<${key}>${value}</${key}>`;
+                        // Nếu giá trị là chuỗi hoặc kiểu đơn giản, thêm thẻ và giá trị
+                        xml += `${openingTag}${value}${closingTag}\n`;
                     }
                 }
             }
@@ -88,7 +95,7 @@
                         const jsonData = JSON.parse(event.target.result);
                         
                         // Chuyển đổi thành XML
-                        const xmlData = jsonToXml(jsonData);
+                        const xmlData = jsonToXml(jsonData, '');
                         
                         // Hiển thị XML ra giao diện
                         document.getElementById('output').textContent = xmlData;
